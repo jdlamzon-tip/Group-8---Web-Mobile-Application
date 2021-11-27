@@ -6,6 +6,8 @@ from wtforms.validators import InputRequired, Email, Length
 from flask_sqlalchemy  import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import sqlite3
+import requests
+from firebase import firebase
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'concepciongerandoylamzonlacanilao'
@@ -37,51 +39,52 @@ class RegisterForm(FlaskForm):
     username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
     password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=80)])
 
+
+
 @app.route('/')
 #@login_required
 def index():
     return render_template('index.html')
 
 @app.route('/home')
-@login_required
 def home():
     return render_template('home.html')
 
 @app.route('/about')
-@login_required
 def about():  
     return render_template('about.html')
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = RegisterForm()
-    
-    if form.validate_on_submit():
-        new_user = User(username=form.username.data, email=form.email.data, password=form.password.data)
-        db.session.add(new_user)
-        db.session.commit()
-        
-        return redirect(url_for('login'))
-        # return '<h1>' + form.username.data + ' ' + form.email.data + ' ' + form.password.data + '</h1>'
+    iname = form.email.data
+    iuser = form.username.data
+    ipass = form.password.data
+    db = firebase.FirebaseApplication("https://devopsproject-1c164-default-rtdb.asia-southeast1.firebasedatabase.app")
+    db.put(f'/accounts/{iuser}', "username", iuser)
+    db.put(f'/accounts/{iuser}', "name", iname)
+    db.put(f'/accounts/{iuser}', "password", ipass)
+
     
     return render_template('signup.html', form=form)
+
     
 @app.route('/login', methods=['GET', 'POST'])
 def login():  
     form = LoginForm()
     
+    
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user:
-            if user.password == form.password.data:
-                login_user(user, remember=form.remember.data)
+        username = form.username.data
+        parsed_data = requests.get(f'https://devopsproject-1c164-default-rtdb.asia-southeast1.firebasedatabase.app/accounts/{username}.json').json() 
+        userdata = parsed_data['username']
+        passdata = parsed_data['password']
+        if form.username.data == userdata:
+            if form.password.data == passdata:
                 return redirect(url_for('home'))
-            
         return '<h1>Invalid username or password</h1>'
-        # return '<h1>' + form.username.data + ' ' + form.password.data + '</h1>'
     
-    
-    return render_template('login.html', form=form) 
+    return render_template('login.html', form=form)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

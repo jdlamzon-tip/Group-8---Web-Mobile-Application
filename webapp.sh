@@ -16,6 +16,9 @@ echo "RUN pip install flask_wtf" >> tempdir/Dockerfile
 echo "RUN pip install flask_sqlalchemy" >> tempdir/Dockerfile
 echo "RUN pip install flask_login" >> tempdir/Dockerfile
 echo "RUN pip install email_validator" >> tempdir/Dockerfile
+echo "RUN pip install git+https://github.com/ozgur/python-firebase" >> tempdir/Dockerfile
+echo "RUN pip install requests" >> tempdir/Dockerfile
+echo "RUN pip install python-firebase" >> tempdir/Dockerfile
 echo "COPY  ./static /home/myapp/static/" >> tempdir/Dockerfile
 echo "COPY  ./templates /home/myapp/templates/" >> tempdir/Dockerfile
 echo "COPY  app.py /home/myapp/" >> tempdir/Dockerfile
